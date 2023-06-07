@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "demo-basic-auth-with-nginx.fullname" . }}
+  labels:
+    {{- include "demo-basic-auth-with-nginx.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: auth-proxy-http
+      protocol: TCP
+      name: auth-proxy-http
+  selector:
+    {{- include "demo-basic-auth-with-nginx.selectorLabels" . | nindent 4 }}

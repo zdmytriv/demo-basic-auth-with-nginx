@@ -1,0 +1,31 @@
+replicaCount: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
+authProxy:
+  image:
+    imagePullSecrets: []
+    repository: nginx
+    pullPolicy: IfNotPresent
+    tag: "stable"
+  port: 80
+app:
+  image:
+    imagePullSecrets: []
+    repository: python
+    pullPolicy: IfNotPresent
+    tag: "3"
+  port: 8080
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

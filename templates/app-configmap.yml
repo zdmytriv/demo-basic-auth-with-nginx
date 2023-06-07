@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-configmap
+data:
+  app.py: |
+    import http.server
+    import socketserver
+
+    PORT = 8080
+
+
+    class RequestHandler(http.server.SimpleHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+
+            headers = dict(self.headers)
+            for name, value in headers.items():
+                self.wfile.write(f"{name}: {value}\n".encode())
+
+
+    with socketserver.TCPServer(("", PORT), RequestHandler) as httpd:
+        print(f"Server listening on port {PORT}")
+        httpd.serve_forever()

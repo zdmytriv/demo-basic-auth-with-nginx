@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "demo-basic-auth-with-nginx.fullname" . }}
+  labels:
+    {{- include "demo-basic-auth-with-nginx.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "demo-basic-auth-with-nginx.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "demo-basic-auth-with-nginx.selectorLabels" . | nindent 8 }}
+    spec:
+      volumes:
+        - name: nginx-config-volume
+          configMap:
+            name: nginx-configmap
+        - name: app-config-volume
+          configMap:
+            name: app-configmap
+      containers:
+        - name: auth-proxy
+          image: "{{ .Values.authProxy.image.repository }}:{{ .Values.authProxy.image.tag }}"
+          imagePullPolicy: {{ .Values.authProxy.image.pullPolicy }}
+          ports:
+            - name: auth-proxy-http
+              containerPort: {{ .Values.authProxy.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: auth-proxy-http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: auth-proxy-http
+          volumeMounts:
+            - name: nginx-config-volume
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+        - name: app
+          image: "{{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}"
+          command: ["python3"]
+          args: ["-u", "/app/app.py"]
+          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+          ports:
+            - name: app-http
+              containerPort: {{ .Values.app.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: app-http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: app-http
+          volumeMounts:
+            - name: app-config-volume
+              mountPath: /app/app.py
+              subPath: app.py
